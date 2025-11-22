@@ -1,0 +1,13 @@
+{
+  "name": "gym-back",
+  "version": "1.0.0",
+  "description": "Express server for GYM-back",
+  "main": "serve.js",
+  "scripts": {
+    "start": "node serve.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^4.18.2"
+  }
+}
