@@ -1,11 +1,13 @@
 const express = require('express');
 const passport = require('passport');
 const { googleOAuthSuccess, googleOAuthFailure } = require('../controllers/authController');
+const { authLimiter } = require('../middleware/rateLimiter');
 
 const router = express.Router();
 
-// Google OAuth routes
+// Google OAuth routes with rate limiting
 router.get('/google',
+  authLimiter,
   passport.authenticate('google', { 
     scope: ['profile', 'email'] 
   })

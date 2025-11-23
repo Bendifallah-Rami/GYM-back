@@ -4,7 +4,9 @@ const cors = require('cors');
 const session = require('express-session');
 const passport = require('passport');
 const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
 const dotenv = require('dotenv');
+const { generalLimiter } = require('./middleware/rateLimiter');
 
 // Load environment variables
 dotenv.config();
@@ -18,6 +20,14 @@ const PORT = process.env.PORT || 3000;
 // Import routes
 const authRoutes = require('./routes/auth');
 const oauthRoutes = require('./routes/oauth');
+
+// Security middleware
+app.use(helmet({
+  crossOriginEmbedderPolicy: false // Allow embedding for OAuth
+}));
+
+// Rate limiting middleware (apply early)
+app.use(generalLimiter);
 
 // Middleware
 app.use(cors({
