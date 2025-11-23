@@ -24,9 +24,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     phone: {
       type: DataTypes.STRING(20),
-      allowNull: false,
+      allowNull: true,
       validate: {
-        notEmpty: true,
         len: [10, 20]
       }
     },
