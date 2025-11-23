@@ -65,22 +65,6 @@ app.get('/', (req, res) => {
   res.json({
     message: 'Welcome to GYM Management API',
     version: '1.0.0',
-    endpoints: {
-      auth: '/api/auth',
-      register: 'POST /api/auth/register',
-      login: 'POST /api/auth/login',
-      verifyEmail: 'GET /api/auth/verify-email/:token',
-      profile: 'GET /api/auth/profile',
-      googleOAuth: 'GET /api/auth/google',
-      googleCallback: 'GET /api/auth/google/callback'
-    },
-    features: [
-      'JWT Authentication',
-      'Google OAuth 2.0',
-      'Email Verification',
-      'Role-based Access Control',
-      'Password Encryption with Salt'
-    ]
   });
 });
 
