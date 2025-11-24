@@ -20,6 +20,7 @@ const PORT = process.env.PORT || 3000;
 // Import routes
 const authRoutes = require('./routes/auth');
 const oauthRoutes = require('./routes/oauth');
+const userRoutes = require('./routes/user');
 
 // Security middleware
 app.use(helmet({
@@ -59,6 +60,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', oauthRoutes);
+app.use('/api/users', userRoutes);
 
 // Root route
 app.get('/', (req, res) => {
