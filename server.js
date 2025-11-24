@@ -21,6 +21,7 @@ const PORT = process.env.PORT || 3000;
 const authRoutes = require('./routes/auth');
 const oauthRoutes = require('./routes/oauth');
 const userRoutes = require('./routes/user');
+const subscriptionPlanRoutes = require('./routes/subscriptionPlan');
 
 // Security middleware
 app.use(helmet({
@@ -61,6 +62,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', oauthRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/subscription-plans', subscriptionPlanRoutes);
 
 // Root route
 app.get('/', (req, res) => {
