@@ -263,6 +263,61 @@ const sendNotificationEmail = async (userId, email, name, title, message, type =
 };
 
 /**
+ * Send notification to employees about subscription actions
+ * @param {Array} employeeEmails - Array of employee email addresses
+ * @param {string} title - Notification title
+ * @param {string} message - Notification message
+ * @param {string} type - Notification type
+ */
+const sendEmployeeNotification = async (employeeEmails, title, message, type = 'employee_alert') => {
+  try {
+    const transporter = createTransporter();
+    if (!transporter) {
+      return { success: false, message: 'Email service not configured' };
+    }
+
+    const emailPromises = employeeEmails.map(email => {
+      const mailOptions = {
+        from: `"${process.env.APP_NAME || 'Gym Management'}" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: `[STAFF ALERT] ${title}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background-color: #007bff; color: white; padding: 20px; text-align: center;">
+              <h2 style="margin: 0;">${process.env.APP_NAME || 'Gym Management'} - Staff Alert</h2>
+            </div>
+            <div style="padding: 30px;">
+              <h3 style="color: #333; margin-bottom: 20px;">${title}</h3>
+              <div style="background-color: #e3f2fd; border-left: 4px solid #2196f3; padding: 20px; margin: 20px 0;">
+                ${message}
+              </div>
+              <div style="margin-top: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 5px;">
+                <p style="margin: 0; color: #666; font-size: 14px;">
+                  <strong>Action Required:</strong> Please log into the admin panel to review and take appropriate action.
+                </p>
+              </div>
+            </div>
+            <hr style="border: 1px solid #eee; margin: 30px 0;">
+            <p style="color: #666; font-size: 12px; text-align: center;">
+              This is an automated staff notification from ${process.env.APP_NAME || 'Gym Management'}.
+            </p>
+          </div>
+        `
+      };
+      return transporter.sendMail(mailOptions);
+    });
+
+    await Promise.all(emailPromises);
+    console.log(`Employee notifications sent to ${employeeEmails.length} staff members: ${title}`);
+    return { success: true };
+    
+  } catch (error) {
+    console.error('Error sending employee notifications:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
  * Test email configuration
  */
 const testEmailConfiguration = async () => {
@@ -283,6 +338,7 @@ module.exports = {
   sendWelcomeEmail,
   sendPasswordResetEmail,
   sendNotificationEmail,
+  sendEmployeeNotification,
   createNotification,
   testEmailConfiguration
 };
