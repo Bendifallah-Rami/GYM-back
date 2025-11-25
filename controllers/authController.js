@@ -198,27 +198,30 @@ const verifyEmail = async (req, res) => {
       last_login: new Date()
     });
 
-    // Send welcome email and create notification (silently)
-    try {
-      await sendWelcomeEmail(user.email, user.name);
-    } catch (emailError) {
-      console.error('📧 Welcome email skipped:', emailError.message);
-    }
-
-    try {
-      await createNotification(
-        user.id,
-        'Email Verified Successfully!',
-        'Your email has been verified. You can now choose a subscription plan.',
-        'general'
-      );
-    } catch (notificationError) {
-      console.error('📝 Notification creation skipped:', notificationError.message);
-    }
-
+    // Send response first for fast API response
     res.json({
       success: true,
       message: 'Email verified successfully!'
+    });
+
+    // Send welcome email and create notification asynchronously after response
+    setImmediate(async () => {
+      try {
+        await sendWelcomeEmail(user.email, user.name);
+      } catch (emailError) {
+        console.error('📧 Welcome email failed:', emailError.message);
+      }
+
+      try {
+        await createNotification(
+          user.id,
+          'Email Verified Successfully!',
+          'Your email has been verified. You can now choose a subscription plan.',
+          'general'
+        );
+      } catch (notificationError) {
+        console.error('📝 Notification creation failed:', notificationError.message);
+      }
     });
 
   } catch (error) {
@@ -311,23 +314,25 @@ const googleOAuthCallback = async (accessToken, refreshToken, profile, done) => 
       last_login: new Date()
     });
     
-    // Send welcome email and create notification for OAuth user (silently)
-    try {
-      await sendWelcomeEmail(newUser.email, newUser.name);
-    } catch (emailError) {
-      console.error('📧 OAuth welcome email skipped:', emailError.message);
-    }
+    // Send welcome email and create notification for OAuth user asynchronously
+    setImmediate(async () => {
+      try {
+        await sendWelcomeEmail(newUser.email, newUser.name);
+      } catch (emailError) {
+        console.error('📧 OAuth welcome email failed:', emailError.message);
+      }
 
-    try {
-      await createNotification(
-        newUser.id,
-        'Welcome via Google!',
-        'Welcome to our gym! Please complete your profile and choose a subscription plan.',
-        'general'
-      );
-    } catch (notificationError) {
-      console.error('📝 OAuth notification skipped:', notificationError.message);
-    }
+      try {
+        await createNotification(
+          newUser.id,
+          'Welcome via Google!',
+          'Welcome to our gym! Please complete your profile and choose a subscription plan.',
+          'general'
+        );
+      } catch (notificationError) {
+        console.error('📝 OAuth notification failed:', notificationError.message);
+      }
+    });
     
     return done(null, newUser);
     
