@@ -32,6 +32,7 @@ const oauthRoutes = require('./routes/oauth');
 const userRoutes = require('./routes/user');
 const subscriptionPlanRoutes = require('./routes/subscriptionPlan');
 const subscriptionRoutes = require('./routes/subscription');
+const attendanceRoutes = require('./routes/attendance');
 
 // ============================================================================
 // APP INITIALIZATION
@@ -107,6 +108,9 @@ app.use('/api/users', userRoutes);
 app.use('/api/subscription-plans', subscriptionPlanRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 
+// Attendance management routes
+app.use('/api/attendance', attendanceRoutes);
+
 // ============================================================================
 // APPLICATION ROUTES
 // ============================================================================
@@ -121,7 +125,9 @@ app.get('/', (req, res) => {
         auth: '/api/auth/*',
         users: '/api/users/*',
         subscriptionPlans: '/api/subscription-plans/*',
-        subscriptions: '/api/subscriptions/*'
+        subscriptions: '/api/subscriptions/*',
+        attendance: '/api/attendance/*',
+        qrCodes: '/api/qr/*'
       },
       oauth: process.env.GOOGLE_CLIENT_ID ? '/api/auth/google' : 'Not configured'
     },
@@ -179,6 +185,21 @@ app.get('/api', (req, res) => {
         freeze: 'PATCH /api/subscriptions/:id/freeze',
         unfreeze: 'PATCH /api/subscriptions/:id/unfreeze',
         cancel: 'PATCH /api/subscriptions/:id/cancel'
+      },
+      attendance: {
+        checkIn: 'POST /api/attendance/check-in',
+        checkOut: 'POST /api/attendance/check-out',
+        myAttendance: 'GET /api/attendance/my',
+        myStats: 'GET /api/attendance/my/stats',
+        allAttendance: 'GET /api/attendance',
+        stats: 'GET /api/attendance/stats',
+        activeUsers: 'GET /api/attendance/active'
+      },
+      qrCodes: {
+        generateAttendanceQR: 'GET /api/qr/attendance',
+        generateMembershipQR: 'GET /api/qr/membership',
+        verifyQR: 'POST /api/qr/verify',
+        qrHistory: 'GET /api/qr/history'
       }
     }
   });
@@ -261,6 +282,7 @@ const server = app.listen(PORT, () => {
   console.log('   👥 Users: /api/users/*');
   console.log('   📋 Subscription Plans: /api/subscription-plans/*');
   console.log('   💳 Subscriptions: /api/subscriptions/*');
+  console.log('   📅 Attendance: /api/attendance/*');
   console.log('');
   
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {

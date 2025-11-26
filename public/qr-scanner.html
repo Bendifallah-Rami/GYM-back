@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gym Attendance - QR Scanner</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .scanner-section, .search-section {
+            margin-bottom: 40px;
+            padding: 25px;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+        .scanner-section h2, .search-section h2 {
+            color: #4CAF50;
+            margin-bottom: 15px;
+        }
+        #video {
+            width: 100%;
+            max-width: 400px;
+            height: 300px;
+            border: 3px solid #4CAF50;
+            border-radius: 10px;
+            margin: 0 auto;
+            display: block;
+        }
+        .search-box {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        #searchInput {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px 0 0 5px;
+            font-size: 16px;
+        }
+        #searchBtn {
+            padding: 12px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #searchBtn:hover {
+            background: #45a049;
+        }
+        .user-list {
+            display: grid;
+            gap: 15px;
+        }
+        .user-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .user-card h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .user-info {
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .status-active { background: #e8f5e8; color: #2e7d32; }
+        .status-checked-in { background: #fff3e0; color: #ef6c00; }
+        .status-inactive { background: #f3e5f5; color: #7b1fa2; }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .btn-checkin {
+            background: #4CAF50;
+            color: white;
+        }
+        .btn-checkout {
+            background: #ff9800;
+            color: white;
+        }
+        .btn-checkin:hover {
+            background: #45a049;
+        }
+        .btn-checkout:hover {
+            background: #f57c00;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        #qrResult {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .camera-controls {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .camera-controls button {
+            background: #2196F3;
+            color: white;
+            margin: 0 5px;
+        }
+        .camera-controls button:hover {
+            background: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏋️ Gym Attendance System</h1>
+        
+        <!-- QR Scanner Section -->
+        <div class="scanner-section">
+            <h2>📱 QR Code Scanner</h2>
+            <p>Scan a member's QR code to quickly check them in or out:</p>
+            
+            <div style="text-align: center;">
+                <video id="video" autoplay muted playsinline></video>
+                <div class="camera-controls">
+                    <button onclick="startCamera()">Start Camera</button>
+                    <button onclick="stopCamera()">Stop Camera</button>
+                </div>
+                <div id="qrResult"></div>
+            </div>
+        </div>
+
+        <!-- Manual Search Section -->
+        <div class="search-section">
+            <h2>🔍 Search Members</h2>
+            <p>Search by name, email, or phone number:</p>
+            
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search for member..." />
+                <button id="searchBtn" onclick="searchUsers()">Search</button>
+            </div>
+            
+            <div id="userResults" class="user-list"></div>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <!-- Include QR Code scanning library -->
+    <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
+    
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        let scanning = false;
+        
+        // API Configuration
+        const API_BASE = 'http://localhost:5000/api';
+        const AUTH_TOKEN = localStorage.getItem('auth_token'); // You'd get this from login
+        
+        // QR Scanner Functions
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
+                });
+                video.srcObject = stream;
+                scanning = true;
+                requestAnimationFrame(scanQR);
+                document.getElementById('qrResult').innerHTML = '<p style="color: #4CAF50;">📹 Camera active - Point at QR code</p>';
+            } catch (error) {
+                document.getElementById('qrResult').innerHTML = `<p style="color: #f44336;">❌ Camera error: ${error.message}</p>`;
+            }
+        }
+        
+        function stopCamera() {
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+            scanning = false;
+            document.getElementById('qrResult').innerHTML = '<p style="color: #666;">📷 Camera stopped</p>';
+        }
+        
+        function scanQR() {
+            if (!scanning) return;
+            
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvas.height = video.videoHeight;
+                canvas.width = video.videoWidth;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                
+                if (code) {
+                    document.getElementById('qrResult').innerHTML = `<p style="color: #4CAF50;">✅ QR Code detected!</p>`;
+                    verifyQRCode(code.data);
+                    stopCamera();
+                    return;
+                }
+            }
+            
+            requestAnimationFrame(scanQR);
+        }
+        
+        // API Functions
+        async function verifyQRCode(qrData) {
+            try {
+                const response = await fetch(`${API_BASE}/attendance/verify-qr`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${AUTH_TOKEN}`
+                    },
+                    body: JSON.stringify({ qrData })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showUserFromQR(result.data.user);
+                } else {
+                    showResult(`❌ ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        function showUserFromQR(user) {
+            const userCard = createUserCard(user);
+            document.getElementById('userResults').innerHTML = userCard;
+            showResult(`✅ QR code verified for ${user.name}`, 'success');
+        }
+        
+        async function searchUsers() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (query.length < 2) {
+                showResult('❌ Please enter at least 2 characters', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/attendance/search?query=${encodeURIComponent(query)}`, {
+                    headers: {
+                        'Authorization': `Bearer ${AUTH_TOKEN}`
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayUsers(result.data.users);
+                } else {
+                    showResult(`❌ ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        function displayUsers(users) {
+            const resultsDiv = document.getElementById('userResults');
+            
+            if (users.length === 0) {
+                resultsDiv.innerHTML = '<p style="text-align: center; color: #666;">No users found matching your search.</p>';
+                return;
+            }
+            
+            resultsDiv.innerHTML = users.map(user => createUserCard(user)).join('');
+        }
+        
+        function createUserCard(user) {
+            const statusBadge = user.isCurrentlyCheckedIn 
+                ? '<span class="status-badge status-checked-in">Currently In Gym</span>'
+                : '<span class="status-badge status-active">Available</span>';
+            
+            const actionButton = user.isCurrentlyCheckedIn
+                ? `<button class="btn-checkout" onclick="checkOut(${user.id})">Check Out</button>`
+                : `<button class="btn-checkin" onclick="checkIn(${user.id})">Check In</button>`;
+            
+            return `
+                <div class="user-card">
+                    <h4>${user.name}</h4>
+                    <div class="user-info">
+                        📧 ${user.email}<br>
+                        📱 ${user.phone || 'N/A'}<br>
+                        💳 Status: ${user.status}
+                    </div>
+                    ${statusBadge}
+                    <div class="action-buttons">
+                        ${actionButton}
+                    </div>
+                </div>
+            `;
+        }
+        
+        async function checkIn(userId) {
+            await performAttendanceAction('check-in', userId);
+        }
+        
+        async function checkOut(userId) {
+            await performAttendanceAction('check-out', userId);
+        }
+        
+        async function performAttendanceAction(action, userId) {
+            try {
+                const response = await fetch(`${API_BASE}/attendance/${action}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${AUTH_TOKEN}`
+                    },
+                    body: JSON.stringify({ user_id: userId })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult(`✅ ${result.message}`, 'success');
+                    // Refresh the search results
+                    searchUsers();
+                } else {
+                    showResult(`❌ ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<div class="result ${type}">${message}</div>`;
+            setTimeout(() => {
+                resultDiv.innerHTML = '';
+            }, 5000);
+        }
+        
+        // Initialize
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchUsers();
+            }
+        });
+        
+        // Show authentication warning if no token
+        if (!AUTH_TOKEN) {
+            showResult('⚠️ Authentication token not found. Please login first.', 'error');
+        }
+    </script>
+</body>
+</html>

@@ -58,10 +58,22 @@ const emailVerificationLimiter = rateLimit({
   },
 });
 
+// Rate limiting for attendance check-in/out
+const attendanceLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 10, // limit each IP to 10 attendance actions per 5 minutes
+  message: {
+    success: false,
+    message: 'Too many check-in/out attempts from this IP, please try again in 5 minutes.',
+    retryAfter: '5 minutes'
+  },
+});
+
 module.exports = {
   generalLimiter,
   authLimiter,
   registerLimiter,
   passwordResetLimiter,
-  emailVerificationLimiter
+  emailVerificationLimiter,
+  attendanceLimiter
 };

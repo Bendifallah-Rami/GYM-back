@@ -1,6 +1,7 @@
 const { Subscription, SubscriptionPlan, User, SubscriptionAudit } = require('../models');
 const { Op } = require('sequelize');
-const { createNotification, sendNotificationEmail, sendEmployeeNotification } = require('../services/emailService');
+const { createNotification, sendNotificationEmail, sendEmployeeNotification, sendMembershipWithQREmail } = require('../services/emailService');
+const { generateSubscriptionQR, generateMembershipCardHTML } = require('../services/qrCodeService');
 
 // Helper function to create audit trail
 const createAuditTrail = async (subscriptionId, action, performedBy, oldStatus = null, newStatus = null, notes = null) => {
@@ -396,22 +397,43 @@ const confirmSubscription = async (req, res) => {
       data: { subscription }
     });
 
-    // Send notifications asynchronously after response
+    // Send notifications and generate QR code asynchronously after response
     setImmediate(async () => {
       try {
+        // Generate attendance QR code for the user
+        const qrCodeBuffer = await generateAttendanceQR(subscription.user_id);
+        
+        // Send membership confirmation email with attendance QR code
+        await sendMembershipWithQREmail(
+          subscription.user_id,
+          subscription.user.email,
+          subscription.user.name,
+          qrCodeBuffer,
+          {
+            subscription: subscription,
+            plan: subscription.plan
+          }
+        );
+
+        console.log(`✅ Attendance QR code sent to ${subscription.user.email}`);
+      } catch (error) {
+        console.error('❌ QR Code generation and email failed:', error);
+        
+        // Fallback: Send notification without QR code
         const confirmationMessage = `
           <p>Great news! Your <strong>${subscription.plan.name}</strong> subscription has been confirmed and is now active.</p>
           <div style="background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; padding: 15px; margin: 15px 0;">
             <h4 style="color: #155724; margin: 0 0 10px 0;">📋 Subscription Details:</h4>
             <ul style="margin: 0; color: #155724;">
               <li><strong>Plan:</strong> ${subscription.plan.name}</li>
-              <li><strong>Start Date:</strong> ${startDate.toDateString()}</li>
-              <li><strong>End Date:</strong> ${endDate.toDateString()}</li>
-              <li><strong>Payment Status:</strong> ${payment_status}</li>
+              <li><strong>Start Date:</strong> ${subscription.start_date ? new Date(subscription.start_date).toDateString() : 'N/A'}</li>
+              <li><strong>End Date:</strong> ${subscription.end_date ? new Date(subscription.end_date).toDateString() : 'N/A'}</li>
+              <li><strong>Payment Status:</strong> ${subscription.payment_status}</li>
               <li><strong>Confirmed By:</strong> ${req.user.name}</li>
             </ul>
           </div>
           <p>You can now enjoy all the benefits of your membership. Welcome to our gym family! 🏋️‍♂️</p>
+          <p style="color: #856404;"><em>Note: Your gym access QR code will be sent separately.</em></p>
         `;
         
         await sendNotificationEmail(
@@ -422,8 +444,6 @@ const confirmSubscription = async (req, res) => {
           confirmationMessage,
           'subscription'
         );
-      } catch (notificationError) {
-        console.error('Confirmation notification failed:', notificationError);
       }
     });
 
