@@ -100,27 +100,11 @@ const checkIn = async (req, res) => {
       ]
     });
 
-    // Send response first for fast API response
+    // Send response
     res.status(201).json({
       success: true,
       message: `Check-in successful for ${targetUser.name}`,
       data: { attendance: attendanceRecord }
-    });
-
-    // Send notification asynchronously since staff checked in the user
-    setImmediate(async () => {
-      try {
-        await sendNotificationEmail(
-          user_id,
-          targetUser.email,
-          targetUser.name,
-          '🏋️ Gym Check-in Recorded',
-          `You have been checked into the gym by ${req.user.name} at ${new Date().toLocaleString()}.`,
-          'attendance'
-        );
-      } catch (notificationError) {
-        console.error('Check-in notification failed:', notificationError);
-      }
     });
 
   } catch (error) {
@@ -360,7 +344,7 @@ const checkOut = async (req, res) => {
       ]
     });
 
-    // Send response first for fast API response
+    // Send response
     res.json({
       success: true,
       message: `Check-out successful for ${attendance.user.name}`,
@@ -369,24 +353,6 @@ const checkOut = async (req, res) => {
         duration: formatDuration(duration)
       }
     });
-
-    // Send notification asynchronously since staff checked out the user
-    if (duration) {
-      setImmediate(async () => {
-        try {
-          await sendNotificationEmail(
-            user_id,
-            attendance.user.email,
-            attendance.user.name,
-            '👋 Gym Check-out Recorded',
-            `Your gym session has been completed by ${req.user.name}. Workout duration: ${formatDuration(duration)}. Great job!`,
-            'attendance'
-          );
-        } catch (notificationError) {
-          console.error('Check-out notification failed:', notificationError);
-        }
-      });
-    }
 
   } catch (error) {
     console.error('Check-out error:', error);
