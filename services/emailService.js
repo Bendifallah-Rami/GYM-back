@@ -318,6 +318,230 @@ const sendEmployeeNotification = async (employeeEmails, title, message, type = '
 };
 
 /**
+ * Send membership card email with QR code
+ * @param {number} userId - User ID
+ * @param {string} email - User email
+ * @param {string} name - User name
+ * @param {string} membershipCardHTML - HTML content for membership card
+ * @param {Buffer} qrCodeBuffer - QR code image buffer
+ * @param {Object} subscriptionData - Subscription details
+ */
+const sendMembershipCardEmail = async (userId, email, name, membershipCardHTML, qrCodeBuffer, subscriptionData) => {
+  try {
+    const transporter = createTransporter();
+    if (!transporter) {
+      return { success: false, message: 'Email service not configured' };
+    }
+
+    const { subscription, plan } = subscriptionData;
+
+    const mailOptions = {
+      from: `"${process.env.APP_NAME || 'Gym Management'}" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: `🎉 Your ${plan.name} Membership is Now Active!`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #4CAF50, #45a049); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="margin: 0; font-size: 28px;">🎉 Welcome to ${process.env.APP_NAME || 'Our Gym'}!</h1>
+            <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">Your membership is now active</p>
+          </div>
+          
+          <div style="padding: 30px; background: white;">
+            <h2 style="color: #333; margin-bottom: 20px;">Hello ${name},</h2>
+            
+            <div style="background-color: #e8f5e8; border-left: 4px solid #4CAF50; padding: 20px; margin: 20px 0; border-radius: 5px;">
+              <h3 style="color: #2e7d32; margin: 0 0 10px 0;">✅ Subscription Confirmed!</h3>
+              <p style="margin: 0; color: #2e7d32;">
+                Your <strong>${plan.name}</strong> subscription has been confirmed and is now active. 
+                You can now enjoy all the benefits of your membership!
+              </p>
+            </div>
+            
+            <h3 style="color: #333; margin: 30px 0 15px 0;">📋 Membership Details:</h3>
+            <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+              <div style="display: grid; gap: 10px;">
+                <div><strong>Plan:</strong> ${plan.name}</div>
+                <div><strong>Duration:</strong> ${plan.duration_months} months</div>
+                <div><strong>Start Date:</strong> ${new Date(subscription.start_date).toLocaleDateString()}</div>
+                <div><strong>End Date:</strong> ${new Date(subscription.end_date).toLocaleDateString()}</div>
+                <div><strong>Membership ID:</strong> #${userId.toString().padStart(6, '0')}</div>
+                <div><strong>Payment Status:</strong> <span style="color: #4CAF50;">${subscription.payment_status.toUpperCase()}</span></div>
+              </div>
+            </div>
+
+            <div style="background: linear-gradient(135deg, #2196F3, #1976D2); color: white; padding: 20px; border-radius: 10px; text-align: center; margin: 25px 0;">
+              <h3 style="margin: 0 0 10px 0;">📱 Your Digital Membership Card</h3>
+              <p style="margin: 0; opacity: 0.9;">
+                Your membership card with QR code is attached to this email. 
+                Save it to your phone for quick gym access!
+              </p>
+            </div>
+
+            ${membershipCardHTML}
+
+            <div style="background: #fff3e0; border: 1px solid #ffb74d; border-radius: 8px; padding: 20px; margin: 25px 0;">
+              <h4 style="color: #ef6c00; margin: 0 0 10px 0;">🔑 How to Use Your QR Code:</h4>
+              <ul style="margin: 0; color: #ef6c00; padding-left: 20px;">
+                <li>Show your QR code at the gym entrance for quick check-in</li>
+                <li>Use it for equipment access verification</li>
+                <li>Present it to staff when needed</li>
+                <li>Keep it saved on your phone for convenience</li>
+              </ul>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <div style="background: #f5f5f5; border-radius: 10px; padding: 20px;">
+                <h4 style="color: #333; margin: 0 0 10px 0;">Ready to Start Your Fitness Journey? 💪</h4>
+                <p style="margin: 0; color: #666;">
+                  Visit our gym with your membership card and start working towards your fitness goals!
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border-top: 1px solid #ddd;">
+            <p style="margin: 0; color: #666; font-size: 14px;">
+              Questions? Contact us at ${process.env.EMAIL_USER} or visit our gym.
+            </p>
+            <p style="margin: 10px 0 0 0; color: #999; font-size: 12px;">
+              This email was sent from ${process.env.APP_NAME || 'Gym Management'} system.
+            </p>
+          </div>
+        </div>
+      `,
+      attachments: [
+        {
+          filename: `${name.replace(/\s+/g, '_')}_Membership_QR.png`,
+          content: qrCodeBuffer,
+          contentType: 'image/png',
+          cid: 'membershipQR' // This can be used to embed in HTML if needed
+        }
+      ]
+    };
+
+    await transporter.sendMail(mailOptions);
+    await createNotification(userId, 'Membership Card Sent', 'Your digital membership card with QR code has been sent to your email.', 'membership');
+    
+    console.log(`Membership card with QR code sent to ${email}`);
+    return { success: true };
+    
+  } catch (error) {
+    console.error('Error sending membership card email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Send membership confirmation email with attendance QR code
+ * @param {number} userId - User ID
+ * @param {string} email - User email
+ * @param {string} name - User name
+ * @param {Buffer} qrCodeBuffer - QR code image buffer
+ * @param {Object} subscriptionData - Subscription details
+ */
+const sendMembershipWithQREmail = async (userId, email, name, qrCodeBuffer, subscriptionData) => {
+  try {
+    const transporter = createTransporter();
+    if (!transporter) {
+      return { success: false, message: 'Email service not configured' };
+    }
+
+    const { subscription, plan } = subscriptionData;
+
+    const mailOptions = {
+      from: `"${process.env.APP_NAME || 'Gym Management'}" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: `🎉 Welcome to ${process.env.APP_NAME || 'Our Gym'} - Your ${plan.name} is Active!`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #4CAF50, #45a049); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="margin: 0; font-size: 28px;">🎉 Welcome to ${process.env.APP_NAME || 'Our Gym'}!</h1>
+            <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">Your membership is now active</p>
+          </div>
+          
+          <div style="padding: 30px; background: white;">
+            <h2 style="color: #333; margin-bottom: 20px;">Hello ${name},</h2>
+            
+            <div style="background-color: #e8f5e8; border-left: 4px solid #4CAF50; padding: 20px; margin: 20px 0; border-radius: 5px;">
+              <h3 style="color: #2e7d32; margin: 0 0 10px 0;">✅ Subscription Confirmed!</h3>
+              <p style="margin: 0; color: #2e7d32;">
+                Your <strong>${plan.name}</strong> subscription has been confirmed and is now active. 
+                Welcome to our gym family!
+              </p>
+            </div>
+            
+            <h3 style="color: #333; margin: 30px 0 15px 0;">📋 Membership Details:</h3>
+            <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+              <div style="display: grid; gap: 10px;">
+                <div><strong>Plan:</strong> ${plan.name}</div>
+                <div><strong>Duration:</strong> ${plan.duration_months} months</div>
+                <div><strong>Start Date:</strong> ${new Date(subscription.start_date).toLocaleDateString()}</div>
+                <div><strong>End Date:</strong> ${new Date(subscription.end_date).toLocaleDateString()}</div>
+                <div><strong>Member ID:</strong> #${userId.toString().padStart(6, '0')}</div>
+                <div><strong>Payment Status:</strong> <span style="color: #4CAF50;">${subscription.payment_status.toUpperCase()}</span></div>
+              </div>
+            </div>
+
+            <div style="background: linear-gradient(135deg, #2196F3, #1976D2); color: white; padding: 20px; border-radius: 10px; text-align: center; margin: 25px 0;">
+              <h3 style="margin: 0 0 10px 0;">📱 Your Gym Access QR Code</h3>
+              <p style="margin: 0; opacity: 0.9;">
+                Show this QR code to gym staff for quick check-in attendance.
+                Keep it saved on your phone!
+              </p>
+            </div>
+
+            <div style="background: #fff3e0; border: 1px solid #ffb74d; border-radius: 8px; padding: 20px; margin: 25px 0;">
+              <h4 style="color: #ef6c00; margin: 0 0 10px 0;">🔑 How to Use Your QR Code:</h4>
+              <ul style="margin: 0; color: #ef6c00; padding-left: 20px;">
+                <li>Show your QR code to the gym staff when you arrive</li>
+                <li>Staff will scan it to mark your attendance</li>
+                <li>No need to remember your member ID</li>
+                <li>Keep it saved on your phone for convenience</li>
+              </ul>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <div style="background: #f5f5f5; border-radius: 10px; padding: 20px;">
+                <h4 style="color: #333; margin: 0 0 10px 0;">Ready to Start Your Fitness Journey? 💪</h4>
+                <p style="margin: 0; color: #666;">
+                  Visit our gym with your QR code and start working towards your fitness goals!
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border-top: 1px solid #ddd;">
+            <p style="margin: 0; color: #666; font-size: 14px;">
+              Questions? Contact us at ${process.env.EMAIL_USER} or visit our gym.
+            </p>
+            <p style="margin: 10px 0 0 0; color: #999; font-size: 12px;">
+              This email was sent from ${process.env.APP_NAME || 'Gym Management'} system.
+            </p>
+          </div>
+        </div>
+      `,
+      attachments: [
+        {
+          filename: `${name.replace(/\s+/g, '_')}_Gym_QR_Code.png`,
+          content: qrCodeBuffer,
+          contentType: 'image/png'
+        }
+      ]
+    };
+
+    await transporter.sendMail(mailOptions);
+    await createNotification(userId, 'Gym Access QR Code Sent', 'Your gym access QR code has been sent to your email for attendance check-in.', 'subscription');
+    
+    console.log(`Gym access QR code sent to ${email}`);
+    return { success: true };
+    
+  } catch (error) {
+    console.error('Error sending QR code email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
  * Test email configuration
  */
 const testEmailConfiguration = async () => {
@@ -339,6 +563,7 @@ module.exports = {
   sendPasswordResetEmail,
   sendNotificationEmail,
   sendEmployeeNotification,
+  sendMembershipWithQREmail,
   createNotification,
   testEmailConfiguration
 };
