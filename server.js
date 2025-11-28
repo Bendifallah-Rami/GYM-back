@@ -33,6 +33,7 @@ const userRoutes = require('./routes/user');
 const subscriptionPlanRoutes = require('./routes/subscriptionPlan');
 const subscriptionRoutes = require('./routes/subscription');
 const attendanceRoutes = require('./routes/attendance');
+const classRoutes = require('./routes/class');
 
 // ============================================================================
 // APP INITIALIZATION
@@ -110,6 +111,9 @@ app.use('/api/subscriptions', subscriptionRoutes);
 
 // Attendance management routes
 app.use('/api/attendance', attendanceRoutes);
+
+// Class management routes
+app.use('/api/classes', classRoutes);
 
 // ============================================================================
 // APPLICATION ROUTES
@@ -283,6 +287,7 @@ const server = app.listen(PORT, () => {
   console.log('   📋 Subscription Plans: /api/subscription-plans/*');
   console.log('   💳 Subscriptions: /api/subscriptions/*');
   console.log('   📅 Attendance: /api/attendance/*');
+  console.log('   🏃‍♂️ Classes: /api/classes/*');
   console.log('');
   
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
