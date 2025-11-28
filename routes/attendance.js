@@ -38,48 +38,46 @@ const qrVerificationValidation = [
 
 // Search users for attendance (GET /api/attendance/search)
 router.get('/search', 
-  authorize(['employee', 'admin']), 
+  authorize('employee', 'admin'), 
   searchUsersForAttendance
 );
 
 // Verify QR code (POST /api/attendance/verify-qr)
 router.post('/verify-qr', 
-  authorize(['employee', 'admin']), 
+  authorize('employee', 'admin'), 
   qrVerificationValidation,
   verifyQRCode
 );
 
 // Check in user (POST /api/attendance/check-in)
 router.post('/check-in', 
-  authorize(['employee', 'admin']),
-  attendanceLimiter, 
+  authorize('employee', 'admin'),
   checkInValidation, 
   checkIn
 );
 
 // Check out user (POST /api/attendance/check-out)
 router.post('/check-out', 
-  authorize(['employee', 'admin']),
-  attendanceLimiter, 
+  authorize('employee', 'admin'),
   checkOutValidation, 
   checkOut
 );
 
 // Get all attendance records (GET /api/attendance)
 router.get('/', 
-  authorize(['employee', 'admin']), 
+  authorize('employee', 'admin'), 
   getAllAttendance
 );
 
 // Get attendance statistics for any user (GET /api/attendance/stats)
 router.get('/stats', 
-  authorize(['employee', 'admin']), 
+  authorize('employee', 'admin'), 
   getAttendanceStats
 );
 
 // Get currently checked-in users (GET /api/attendance/active)
 router.get('/active', 
-  authorize(['employee', 'admin']), 
+  authorize('employee', 'admin'), 
   getCurrentlyCheckedIn
 );
 
