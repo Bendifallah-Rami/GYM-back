@@ -52,6 +52,31 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       defaultValue: []
     },
+    price: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0.00,
+      validate: {
+        min: 0
+      }
+    },
+    registered_users: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      defaultValue: [],
+      validate: {
+        isArray(value) {
+          if (value && !Array.isArray(value)) {
+            throw new Error('Registered users must be an array');
+          }
+        }
+      }
+    },
+    status: {
+      type: DataTypes.ENUM('available', 'full', 'cancelled'),
+      allowNull: false,
+      defaultValue: 'available'
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,

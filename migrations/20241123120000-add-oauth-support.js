@@ -1,10 +1,10 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     // Add Google OAuth columns if they don't exist
-    const tableInfo = await queryInterface.describeTable('Users');
+    const tableInfo = await queryInterface.describeTable('users');
     
     if (!tableInfo.google_id) {
-      await queryInterface.addColumn('Users', 'google_id', {
+      await queryInterface.addColumn('users', 'google_id', {
         type: Sequelize.STRING(255),
         allowNull: true,
         unique: true
@@ -12,7 +12,7 @@ module.exports = {
     }
     
     if (!tableInfo.profile_picture) {
-      await queryInterface.addColumn('Users', 'profile_picture', {
+      await queryInterface.addColumn('users', 'profile_picture', {
         type: Sequelize.STRING(500),
         allowNull: true
       });
@@ -20,7 +20,7 @@ module.exports = {
 
     // Make password_hash nullable for OAuth users
     if (tableInfo.password_hash && tableInfo.password_hash.allowNull === false) {
-      await queryInterface.changeColumn('Users', 'password_hash', {
+      await queryInterface.changeColumn('users', 'password_hash', {
         type: Sequelize.STRING(255),
         allowNull: true
       });
@@ -28,7 +28,7 @@ module.exports = {
 
     // Make phone nullable for OAuth users (they can fill it later)
     if (tableInfo.phone && tableInfo.phone.allowNull === false) {
-      await queryInterface.changeColumn('Users', 'phone', {
+      await queryInterface.changeColumn('users', 'phone', {
         type: Sequelize.STRING(20),
         allowNull: true
       });
@@ -36,17 +36,17 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeColumn('Users', 'google_id');
-    await queryInterface.removeColumn('Users', 'profile_picture');
+    await queryInterface.removeColumn('users', 'google_id');
+    await queryInterface.removeColumn('users', 'profile_picture');
     
     // Revert password_hash to not nullable
-    await queryInterface.changeColumn('Users', 'password_hash', {
+    await queryInterface.changeColumn('users', 'password_hash', {
       type: Sequelize.STRING(255),
       allowNull: false
     });
     
     // Revert phone to not nullable
-    await queryInterface.changeColumn('Users', 'phone', {
+    await queryInterface.changeColumn('users', 'phone', {
       type: Sequelize.STRING(20),
       allowNull: false
     });
