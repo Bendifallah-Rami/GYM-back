@@ -8,7 +8,11 @@ const {
   getClassById,
   updateClass,
   deleteClass,
-  getMyClasses
+  getMyClasses,
+  joinClass,
+  leaveClass,
+  getMyJoinedClasses,
+  getClassParticipants
 } = require('../controllers/classController');
 
 // Apply authentication to all routes
@@ -41,8 +45,19 @@ const classIdValidation = [
   param('id').isInt().withMessage('Class ID must be a valid integer')
 ];
 
+const joinClassValidation = [
+  param('id').isInt().withMessage('Class ID must be a valid integer'),
+  body('booking_date').optional().isDate().withMessage('Booking date must be a valid date'),
+  body('notes').optional().isLength({ max: 500 }).withMessage('Notes must not exceed 500 characters')
+];
+
+const leaveClassValidation = [
+  param('id').isInt().withMessage('Class ID must be a valid integer'),
+  body('reason').optional().isLength({ max: 255 }).withMessage('Reason must not exceed 255 characters')
+];
+
 // ============================================================================
-// PUBLIC ROUTES (All authenticated users can access)
+// USER ROUTES (All authenticated users can access)
 // ============================================================================
 
 // Get all classes (GET /api/classes)
@@ -50,6 +65,28 @@ router.get('/', getAllClasses);
 
 // Get class by ID (GET /api/classes/:id)
 router.get('/:id', classIdValidation, getClassById);
+
+// Get class participants (GET /api/classes/:id/participants) - Coach/Admin only
+router.get('/:id/participants', 
+  authorize('coach', 'admin'),
+  classIdValidation,
+  getClassParticipants
+);
+
+// Get my available classes to join (GET /api/classes/my/available)
+router.get('/my/available', getMyJoinedClasses);
+
+// Join a class (POST /api/classes/:id/join)
+router.post('/:id/join', 
+  joinClassValidation,
+  joinClass
+);
+
+// Leave/Cancel class booking (POST /api/classes/:id/leave)
+router.post('/:id/leave', 
+  leaveClassValidation,
+  leaveClass
+);
 
 // ============================================================================
 // COACH ROUTES (Coaches can manage their own classes)
