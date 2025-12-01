@@ -223,14 +223,6 @@ app.get('/api', (req, res) => {
 
 // Global error handler
 app.use((err, req, res, next) => {
-  console.error('🚨 Error occurred:', {
-    message: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-    url: req.url,
-    method: req.method,
-    timestamp: new Date().toISOString()
-  });
-
   // Handle specific error types
   if (err.name === 'ValidationError') {
     return res.status(400).json({
@@ -269,43 +261,8 @@ app.use('*', (req, res) => {
 // ============================================================================
 
 const server = app.listen(PORT, () => {
-  console.log('');
-  console.log('🚀 ============================================');
-  console.log('🏋️  GYM MANAGEMENT API SERVER STARTED');
-  console.log('🚀 ============================================');
-  console.log(`📍 Server running on port: ${PORT}`);
-  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
-  console.log(`💚 Health Check: http://localhost:${PORT}/health`);
-  console.log('');
-  
-  // Configuration status
-  console.log('📋 Configuration Status:');
-  console.log(`   Database: ${process.env.DB_NAME ? '✅ Configured' : '❌ Not configured'}`);
-  console.log(`   Email Service: ${process.env.EMAIL_USER ? '✅ Configured' : '❌ Not configured'}`);
-  console.log(`   Google OAuth: ${process.env.GOOGLE_CLIENT_ID ? '✅ Configured' : '❌ Not configured'}`);
-  console.log(`   JWT Secret: ${process.env.JWT_SECRET ? '✅ Configured' : '❌ Not configured'}`);
-  console.log('');
-  
-  // Available endpoints
-  console.log('🛣️  Available Endpoints:');
-  console.log('   📝 Documentation: GET /api');
-  console.log('   🔐 Authentication: /api/auth/*');
-  console.log('   👥 Users: /api/users/*');
-  console.log('   📋 Subscription Plans: /api/subscription-plans/*');
-  console.log('   💳 Subscriptions: /api/subscriptions/*');
-  console.log('   📅 Attendance: /api/attendance/*');
-  console.log('   🏃‍♂️ Classes: /api/classes/*');
-  console.log('');
-  
-  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    console.log(`🔐 Google OAuth URL: http://localhost:${PORT}/api/auth/google`);
-  } else {
-    console.log(`⚠️  Google OAuth not configured - add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to .env`);
-  }
-  
-  console.log('🚀 ============================================');
-  console.log('');
+  console.log(`🚀 Server running on port: ${PORT}`);
+  console.log(`📍 Database: ${process.env.DB_NAME ? '✅ Connected' : '❌ Not connected'}`);
 });
 
 // ============================================================================
@@ -314,30 +271,24 @@ const server = app.listen(PORT, () => {
 
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('📴 SIGTERM received. Shutting down gracefully...');
   server.close(() => {
-    console.log('👋 Server closed successfully');
     process.exit(0);
   });
 });
 
 process.on('SIGINT', () => {
-  console.log('📴 SIGINT received. Shutting down gracefully...');
   server.close(() => {
-    console.log('👋 Server closed successfully');
     process.exit(0);
   });
 });
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
-  console.error('💥 Uncaught Exception:', err);
   process.exit(1);
 });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
   process.exit(1);
 });
 
