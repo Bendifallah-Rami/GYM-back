@@ -4,10 +4,10 @@
   "description": "Gym Management System Backend",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "npm run db:setup && node server.js",
     "dev": "nodemon server.js",
-    "build": "NODE_ENV=production npx sequelize-cli db:migrate && NODE_ENV=production npx sequelize-cli db:seed:all",
-    "deploy": "NODE_ENV=production npx sequelize-cli db:migrate && NODE_ENV=production npx sequelize-cli db:seed:all",
+    "build": "echo 'Build completed - dependencies installed'",
+    "db:setup": "npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all",
     "db:migrate": "npx sequelize-cli db:migrate",
     "db:migrate:undo": "npx sequelize-cli db:migrate:undo",
     "db:seed": "npx sequelize-cli db:seed:all",
