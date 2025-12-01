@@ -1,4 +1,4 @@
-const { body, param, validationResult } = require('express-validator');
+const { body, param, validationResult, query } = require('express-validator');
 
 /**
  * Middleware to handle validation results
@@ -239,6 +239,77 @@ const paginationValidation = [
     .withMessage('Limit must be between 1 and 100')
 ];
 
+/**
+ * Notification validation rules
+ */
+const notificationIdValidation = [
+  param('id').isInt().withMessage('Notification ID must be a valid integer')
+];
+
+const createSystemNotificationValidation = [
+  body('title')
+    .trim()
+    .isLength({ min: 1, max: 255 })
+    .withMessage('Title is required and must be between 1-255 characters'),
+  
+  body('message')
+    .trim()
+    .isLength({ min: 1 })
+    .withMessage('Message is required'),
+  
+  body('type')
+    .optional()
+    .isIn(['subscription', 'payment', 'class', 'general', 'email_verification', 'attendance', 'coach_assignment'])
+    .withMessage('Invalid notification type'),
+  
+  body('user_id')
+    .optional()
+    .isInt()
+    .withMessage('User ID must be a valid integer'),
+  
+  body('user_ids')
+    .optional()
+    .isArray()
+    .withMessage('User IDs must be an array'),
+  
+  body('user_ids.*')
+    .optional()
+    .isInt()
+    .withMessage('Each user ID must be a valid integer'),
+  
+  body('send_to_all')
+    .optional()
+    .isBoolean()
+    .withMessage('Send to all must be a boolean')
+];
+
+const notificationQueryValidation = [
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Page must be a positive integer'),
+  
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .withMessage('Limit must be between 1-100'),
+  
+  query('type')
+    .optional()
+    .isIn(['subscription', 'payment', 'class', 'general', 'email_verification', 'attendance', 'coach_assignment'])
+    .withMessage('Invalid notification type'),
+  
+  query('is_read')
+    .optional()
+    .isBoolean()
+    .withMessage('is_read must be a boolean'),
+  
+  query('user_id')
+    .optional()
+    .isInt()
+    .withMessage('User ID must be a valid integer')
+];
+
 module.exports = {
   validateResult,
   registerValidation,
@@ -254,5 +325,8 @@ module.exports = {
   emailValidation,
   passwordValidation,
   searchValidation,
-  paginationValidation
+  paginationValidation,
+  notificationIdValidation,
+  createSystemNotificationValidation,
+  notificationQueryValidation
 };
