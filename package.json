@@ -4,13 +4,17 @@
   "description": "Gym Management System Backend",
   "main": "server.js",
   "scripts": {
-    "start": "npm run db:setup && node server.js",
-    "dev": "nodemon server.js",
+    "start": "npm run db:setup:prod && node server.js",
+    "dev": "npm run db:setup:dev && nodemon server.js",
     "build": "echo 'Build completed'",
-    "db:setup": "npx sequelize-cli db:migrate --env production && npx sequelize-cli db:seed:all --env production",
-    "db:migrate": "npx sequelize-cli db:migrate --env production",
-    "db:seed": "npx sequelize-cli db:seed:all --env production",
-    "db:reset": "npx sequelize-cli db:migrate:undo:all --env production && npx sequelize-cli db:migrate --env production && npx sequelize-cli db:seed:all --env production"
+    "db:setup:dev": "npx sequelize-cli db:migrate --env development && npx sequelize-cli db:seed:all --env development",
+    "db:setup:prod": "npx sequelize-cli db:migrate --env production && npx sequelize-cli db:seed:all --env production",
+    "db:migrate:dev": "npx sequelize-cli db:migrate --env development",
+    "db:migrate:prod": "npx sequelize-cli db:migrate --env production",
+    "db:seed:dev": "npx sequelize-cli db:seed:all --env development",
+    "db:seed:prod": "npx sequelize-cli db:seed:all --env production",
+    "db:reset:dev": "npx sequelize-cli db:migrate:undo:all --env development && npx sequelize-cli db:migrate --env development && npx sequelize-cli db:seed:all --env development",
+    "db:reset:prod": "npx sequelize-cli db:migrate:undo:all --env production && npx sequelize-cli db:migrate --env production && npx sequelize-cli db:seed:all --env production"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
