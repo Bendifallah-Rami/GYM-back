@@ -3,8 +3,8 @@ services:
     name: gym-management-api
     env: node
     plan: free
-    buildCommand: npm install
-    startCommand: npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all && npm start
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production

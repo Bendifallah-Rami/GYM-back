@@ -139,7 +139,9 @@ app.get('/', (req, res) => {
         subscriptionPlans: '/api/subscription-plans/*',
         subscriptions: '/api/subscriptions/*',
         attendance: '/api/attendance/*',
-        qrCodes: '/api/qr/*'
+        classes: '/api/classes/*',
+        coachAssignments: '/api/coach-assignments/*',
+        notifications: '/api/notifications/*'
       },
       oauth: process.env.GOOGLE_CLIENT_ID ? '/api/auth/google' : 'Not configured'
     },
@@ -198,6 +200,35 @@ app.get('/api', (req, res) => {
         unfreeze: 'PATCH /api/subscriptions/:id/unfreeze',
         cancel: 'PATCH /api/subscriptions/:id/cancel'
       },
+      classes: {
+        list: 'GET /api/classes',
+        create: 'POST /api/classes',
+        getById: 'GET /api/classes/:id',
+        update: 'PUT /api/classes/:id',
+        delete: 'DELETE /api/classes/:id',
+        join: 'POST /api/classes/:id/join',
+        leave: 'DELETE /api/classes/:id/leave',
+        myClasses: 'GET /api/classes/my/joined'
+      },
+      coachAssignments: {
+        list: 'GET /api/coach-assignments',
+        create: 'POST /api/coach-assignments',
+        getById: 'GET /api/coach-assignments/:id',
+        update: 'PUT /api/coach-assignments/:id',
+        delete: 'DELETE /api/coach-assignments/:id',
+        myClients: 'GET /api/coach-assignments/my/clients',
+        myCoaches: 'GET /api/coach-assignments/my/coaches'
+      },
+      notifications: {
+        myNotifications: 'GET /api/notifications/my',
+        unreadCount: 'GET /api/notifications/my/unread',
+        markAsRead: 'PATCH /api/notifications/:id/read',
+        markAllAsRead: 'PATCH /api/notifications/mark-all-read',
+        delete: 'DELETE /api/notifications/:id',
+        adminAll: 'GET /api/notifications/admin/all',
+        adminStats: 'GET /api/notifications/admin/stats',
+        adminCreate: 'POST /api/notifications/admin/system'
+      },
       attendance: {
         checkIn: 'POST /api/attendance/check-in',
         checkOut: 'POST /api/attendance/check-out',
@@ -206,12 +237,6 @@ app.get('/api', (req, res) => {
         allAttendance: 'GET /api/attendance',
         stats: 'GET /api/attendance/stats',
         activeUsers: 'GET /api/attendance/active'
-      },
-      qrCodes: {
-        generateAttendanceQR: 'GET /api/qr/attendance',
-        generateMembershipQR: 'GET /api/qr/membership',
-        verifyQR: 'POST /api/qr/verify',
-        qrHistory: 'GET /api/qr/history'
       }
     }
   });
