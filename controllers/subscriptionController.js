@@ -2,6 +2,7 @@ const { Subscription, SubscriptionPlan, User, SubscriptionAudit } = require('../
 const { Op } = require('sequelize');
 const { createNotification, sendNotificationEmail, sendEmployeeNotification, sendMembershipWithQREmail } = require('../services/emailService');
 const { generateSubscriptionQR, generateMembershipCardHTML } = require('../services/qrCodeService');
+const NotificationService = require('../services/notificationService');
 
 // Helper function to create audit trail
 const createAuditTrail = async (subscriptionId, action, performedBy, oldStatus = null, newStatus = null, notes = null) => {
@@ -444,6 +445,15 @@ const confirmSubscription = async (req, res) => {
           confirmationMessage,
           'subscription'
         );
+
+        // Create in-app notification
+        await NotificationService.createSubscriptionNotification(
+          subscription.user_id,
+          'confirmed',
+          {
+            plan_name: subscription.plan.name
+          }
+        );
       }
     });
 
@@ -531,6 +541,15 @@ const rejectSubscription = async (req, res) => {
           '❌ Subscription Request Rejected',
           rejectionMessage,
           'subscription'
+        );
+
+        // Create in-app notification
+        await NotificationService.createSubscriptionNotification(
+          subscription.user_id,
+          'rejected',
+          {
+            reason: reason || 'Please contact our support team for more information.'
+          }
         );
       } catch (notificationError) {
         console.error('Rejection notification failed:', notificationError);
@@ -620,6 +639,12 @@ const freezeSubscription = async (req, res) => {
           freezeMessage,
           'subscription'
         );
+
+        // Create in-app notification
+        await NotificationService.createSubscriptionNotification(
+          subscription.user_id,
+          'frozen'
+        );
       } catch (notificationError) {
         console.error('Freeze notification failed:', notificationError);
       }
@@ -706,6 +731,12 @@ const unfreezeSubscription = async (req, res) => {
           '🔥 Subscription Reactivated!',
           unfreezeMessage,
           'subscription'
+        );
+
+        // Create in-app notification
+        await NotificationService.createSubscriptionNotification(
+          subscription.user_id,
+          'unfrozen'
         );
       } catch (notificationError) {
         console.error('Unfreeze notification failed:', notificationError);

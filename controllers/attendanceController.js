@@ -1,6 +1,7 @@
 const { Attendance, User } = require('../models');
 const { Op } = require('sequelize');
 const { createNotification, sendNotificationEmail } = require('../services/emailService');
+const NotificationService = require('../services/notificationService');
 
 // Helper function to calculate duration in hours and minutes
 const calculateDuration = (checkIn, checkOut) => {
@@ -99,6 +100,21 @@ const checkIn = async (req, res) => {
         }
       ]
     });
+
+    // Create notification for successful check-in
+    try {
+      await NotificationService.createAttendanceNotification(
+        user_id,
+        'checked_in',
+        {
+          checkInTime: attendance.check_in_time.toLocaleTimeString(),
+          recordedBy: req.user.name
+        }
+      );
+    } catch (notificationError) {
+      console.error('Failed to create check-in notification:', notificationError);
+      // Don't fail the main operation if notification fails
+    }
 
     // Send response
     res.status(201).json({
@@ -343,6 +359,22 @@ const checkOut = async (req, res) => {
         }
       ]
     });
+
+    // Create notification for successful check-out with workout duration
+    try {
+      await NotificationService.createAttendanceNotification(
+        user_id,
+        'checked_out',
+        {
+          checkOutTime: checkOutTime.toLocaleTimeString(),
+          duration: formatDuration(duration),
+          recordedBy: req.user.name
+        }
+      );
+    } catch (notificationError) {
+      console.error('Failed to create check-out notification:', notificationError);
+      // Don't fail the main operation if notification fails
+    }
 
     // Send response
     res.json({
