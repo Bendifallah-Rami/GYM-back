@@ -60,11 +60,9 @@ const getUserNotifications = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get user notifications error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch notifications',
-      error: error.message
+      message: 'Fetch failed'
     });
   }
 };
@@ -87,11 +85,9 @@ const getUnreadCount = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get unread count error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to get unread count',
-      error: error.message
+      message: 'Count failed'
     });
   }
 };
@@ -124,11 +120,9 @@ const markAsRead = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Mark as read error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to mark notification as read',
-      error: error.message
+      message: 'Mark failed'
     });
   }
 };
@@ -155,11 +149,9 @@ const markAllAsRead = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Mark all as read error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to mark all notifications as read',
-      error: error.message
+      message: 'Mark failed'
     });
   }
 };
@@ -191,11 +183,9 @@ const deleteNotification = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Delete notification error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to delete notification',
-      error: error.message
+      message: 'Delete failed'
     });
   }
 };
@@ -238,11 +228,9 @@ const getNotificationById = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get notification by ID error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch notification',
-      error: error.message
+      message: 'Fetch failed'
     });
   }
 };
@@ -315,11 +303,9 @@ const getAllNotifications = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get all notifications error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch notifications',
-      error: error.message
+      message: 'Fetch failed'
     });
   }
 };
@@ -380,11 +366,9 @@ const createSystemNotification = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Create system notification error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create system notification',
-      error: error.message
+      message: 'Create failed'
     });
   }
 };
@@ -433,11 +417,9 @@ const getNotificationStats = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get notification stats error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch notification statistics',
-      error: error.message
+      message: 'Stats failed'
     });
   }
 };

@@ -41,7 +41,7 @@ const queryValidation = [
 ];
 
 // ============================================================================
-// USER ROUTES (All authenticated users can manage their notifications)
+// SPECIFIC ROUTES FIRST (to avoid conflicts with /:id route)
 // ============================================================================
 
 // Get my notifications (GET /api/notifications/my)
@@ -53,32 +53,14 @@ router.get('/my',
 // Get unread count (GET /api/notifications/my/unread)
 router.get('/my/unread', getUnreadCount);
 
-// Get notification by ID (GET /api/notifications/:id)
-router.get('/:id', 
-  notificationIdValidation,
-  getNotificationById
-);
-
-// Mark notification as read (PATCH /api/notifications/:id/read)
-router.patch('/:id/read', 
-  notificationIdValidation,
-  markAsRead
-);
-
 // Mark all notifications as read (PATCH /api/notifications/mark-all-read)
 router.patch('/mark-all-read', markAllAsRead);
-
-// Delete notification (DELETE /api/notifications/:id)
-router.delete('/:id', 
-  notificationIdValidation,
-  deleteNotification
-);
 
 // ============================================================================
 // ADMIN/EMPLOYEE ROUTES (Staff can manage system notifications)
 // ============================================================================
 
-// Get all notifications (GET /api/notifications/all)
+// Get all notifications (GET /api/notifications/admin/all)
 router.get('/admin/all', 
   authorize('admin', 'employee'),
   queryValidation,
@@ -96,6 +78,28 @@ router.post('/admin/system',
   authorize('admin', 'employee'),
   createSystemNotificationValidation,
   createSystemNotification
+);
+
+// ============================================================================
+// DYNAMIC ROUTES LAST (/:id routes must come after specific routes)
+// ============================================================================
+
+// Get notification by ID (GET /api/notifications/:id)
+router.get('/:id', 
+  notificationIdValidation,
+  getNotificationById
+);
+
+// Mark notification as read (PATCH /api/notifications/:id/read)
+router.patch('/:id/read', 
+  notificationIdValidation,
+  markAsRead
+);
+
+// Delete notification (DELETE /api/notifications/:id)
+router.delete('/:id', 
+  notificationIdValidation,
+  deleteNotification
 );
 
 module.exports = router;
