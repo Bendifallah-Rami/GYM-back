@@ -1,5 +1,6 @@
 const { CoachAssignment, User } = require('../models');
 const { Op } = require('sequelize');
+const NotificationService = require('../services/notificationService');
 
 // Create new coach assignment (admin only)
 const createCoachAssignment = async (req, res) => {
@@ -72,6 +73,32 @@ const createCoachAssignment = async (req, res) => {
         }
       ]
     });
+
+    // Create notifications for both coach and user
+    try {
+      // Notify the user about the new coach assignment
+      await NotificationService.createCoachAssignmentNotification(
+        user_id,
+        'assigned',
+        {
+          coachName: coach.name,
+          assignedDate: new Date(assigned_date || new Date()).toLocaleDateString()
+        }
+      );
+
+      // Notify the coach about the new client assignment
+      await NotificationService.createCoachAssignmentNotification(
+        coach_id,
+        'new_client',
+        {
+          clientName: user.name,
+          assignedDate: new Date(assigned_date || new Date()).toLocaleDateString()
+        }
+      );
+    } catch (notificationError) {
+      console.error('Failed to create coach assignment notifications:', notificationError);
+      // Don't fail the main operation if notification fails
+    }
 
     res.status(201).json({
       success: true,
@@ -262,6 +289,57 @@ const updateCoachAssignment = async (req, res) => {
 
     await assignment.update(updateData);
 
+    // Create notifications for significant changes
+    try {
+      // If coach changed
+      if (coach_id && coach_id !== assignment.coach_id) {
+        // Get the new coach and user info for notifications
+        const newCoach = await User.findByPk(coach_id, { attributes: ['id', 'name'] });
+        const user = await User.findByPk(assignment.user_id, { attributes: ['id', 'name'] });
+        
+        if (newCoach && user) {
+          // Notify user about coach change
+          await NotificationService.createCoachAssignmentNotification(
+            assignment.user_id,
+            'coach_changed',
+            {
+              newCoachName: newCoach.name
+            }
+          );
+
+          // Notify new coach about client
+          await NotificationService.createCoachAssignmentNotification(
+            coach_id,
+            'new_client',
+            {
+              clientName: user.name,
+              assignedDate: new Date().toLocaleDateString()
+            }
+          );
+        }
+      }
+
+      // If assignment was deactivated
+      if (is_active === false && assignment.is_active === true) {
+        const coach = await User.findByPk(assignment.coach_id, { attributes: ['id', 'name'] });
+        const user = await User.findByPk(assignment.user_id, { attributes: ['id', 'name'] });
+        
+        if (coach && user) {
+          // Notify user about assignment ending
+          await NotificationService.createCoachAssignmentNotification(
+            assignment.user_id,
+            'unassigned',
+            {
+              coachName: coach.name
+            }
+          );
+        }
+      }
+    } catch (notificationError) {
+      console.error('Failed to create update notifications:', notificationError);
+      // Don't fail the main operation if notification fails
+    }
+
     const updatedAssignment = await CoachAssignment.findByPk(id, {
       include: [
         {
@@ -298,12 +376,43 @@ const deleteCoachAssignment = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const assignment = await CoachAssignment.findByPk(id);
+    const assignment = await CoachAssignment.findByPk(id, {
+      include: [
+        {
+          model: User,
+          as: 'coach',
+          attributes: ['id', 'name']
+        },
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'name']
+        }
+      ]
+    });
+
     if (!assignment) {
       return res.status(404).json({
         success: false,
         message: 'Coach assignment not found'
       });
+    }
+
+    // Create notifications before deleting
+    try {
+      if (assignment.coach && assignment.user) {
+        // Notify user about assignment deletion
+        await NotificationService.createCoachAssignmentNotification(
+          assignment.user_id,
+          'unassigned',
+          {
+            coachName: assignment.coach.name
+          }
+        );
+      }
+    } catch (notificationError) {
+      console.error('Failed to create deletion notification:', notificationError);
+      // Don't fail the main operation if notification fails
     }
 
     await assignment.destroy();

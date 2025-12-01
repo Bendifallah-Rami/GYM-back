@@ -1,6 +1,7 @@
 const { Class, User } = require('../models');
 const { Op } = require('sequelize');
 const { createNotification, sendNotificationEmail } = require('../services/emailService');
+const NotificationService = require('../services/notificationService');
 
 // Create new class (admin/coach only)
 const createClass = async (req, res) => {
@@ -494,6 +495,22 @@ const joinClass = async (req, res) => {
       status: newStatus
     });
 
+    // Create notification for successful class join
+    try {
+      await NotificationService.createClassNotification(
+        req.user.id,
+        'joined',
+        {
+          className: classData.name,
+          bookingDate: userInfo.booking_date,
+          classTime: classData.schedule_time
+        }
+      );
+    } catch (notificationError) {
+      console.error('Failed to create class join notification:', notificationError);
+      // Don't fail the main operation if notification fails
+    }
+
     res.json({
       success: true,
       message: `Successfully joined ${classData.name} class`,
@@ -557,6 +574,21 @@ const leaveClass = async (req, res) => {
       registered_users: updatedRegisteredUsers,
       status: newStatus
     });
+
+    // Create notification for class cancellation
+    try {
+      await NotificationService.createClassNotification(
+        req.user.id,
+        'cancelled',
+        {
+          className: classData.name,
+          reason: reason || 'No reason provided'
+        }
+      );
+    } catch (notificationError) {
+      console.error('Failed to create class cancellation notification:', notificationError);
+      // Don't fail the main operation if notification fails
+    }
 
     res.json({
       success: true,

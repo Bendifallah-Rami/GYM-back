@@ -35,6 +35,7 @@ const subscriptionRoutes = require('./routes/subscription');
 const attendanceRoutes = require('./routes/attendance');
 const classRoutes = require('./routes/class');
 const coachAssignmentRoutes = require('./routes/coachAssignment');
+const notificationRoutes = require('./routes/notification');
 
 // ============================================================================
 // APP INITIALIZATION
@@ -118,6 +119,9 @@ app.use('/api/classes', classRoutes);
 
 // Coach assignment routes
 app.use('/api/coach-assignments', coachAssignmentRoutes);
+
+// Notification routes
+app.use('/api/notifications', notificationRoutes);
 
 // ============================================================================
 // APPLICATION ROUTES
