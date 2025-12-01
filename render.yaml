@@ -13,5 +13,5 @@ services:
     autoDeploy: false
 
 databases:
-  - name: gym-db
+  - name: GYM-DB
     plan: free
