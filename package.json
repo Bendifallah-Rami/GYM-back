@@ -7,10 +7,10 @@
     "start": "npm run db:setup && node server.js",
     "dev": "nodemon server.js",
     "build": "echo 'Build completed'",
-    "db:setup": "npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all",
-    "db:migrate": "npx sequelize-cli db:migrate",
-    "db:seed": "npx sequelize-cli db:seed:all",
-    "db:reset": "npx sequelize-cli db:migrate:undo:all && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all"
+    "db:setup": "node ./node_modules/.bin/sequelize-cli db:migrate && node ./node_modules/.bin/sequelize-cli db:seed:all",
+    "db:migrate": "node ./node_modules/.bin/sequelize-cli db:migrate",
+    "db:seed": "node ./node_modules/.bin/sequelize-cli db:seed:all",
+    "db:reset": "node ./node_modules/.bin/sequelize-cli db:migrate:undo:all && node ./node_modules/.bin/sequelize-cli db:migrate && node ./node_modules/.bin/sequelize-cli db:seed:all"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

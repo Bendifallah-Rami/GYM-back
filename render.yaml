@@ -3,8 +3,8 @@ services:
     name: gym-management-api
     env: node
     plan: free
-    buildCommand: npm install
-    startCommand: npm start
+    buildCommand: npm install && npm run build
+    startCommand: npm run db:setup && node server.js
     envVars:
       - key: NODE_ENV
         value: production
