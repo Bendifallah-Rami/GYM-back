@@ -36,6 +36,9 @@ const attendanceRoutes = require('./routes/attendance');
 const classRoutes = require('./routes/class');
 const coachAssignmentRoutes = require('./routes/coachAssignment');
 const notificationRoutes = require('./routes/notification');
+const dashboardRoutes = require('./routes/dashboard');
+const userFlowRoutes = require('./routes/userFlow');
+const adminRoutes = require('./routes/admin');
 
 // ============================================================================
 // APP INITIALIZATION
@@ -122,6 +125,15 @@ app.use('/api/coach-assignments', coachAssignmentRoutes);
 
 // Notification routes
 app.use('/api/notifications', notificationRoutes);
+
+// Dashboard routes
+app.use('/api/dashboard', dashboardRoutes);
+
+// User flow routes
+app.use('/api/user-flow', userFlowRoutes);
+
+// Admin routes
+app.use('/api/admin', adminRoutes);
 
 // ============================================================================
 // APPLICATION ROUTES
@@ -237,6 +249,41 @@ app.get('/api', (req, res) => {
         allAttendance: 'GET /api/attendance',
         stats: 'GET /api/attendance/stats',
         activeUsers: 'GET /api/attendance/active'
+      },
+      dashboard: {
+        userDashboard: 'GET /api/dashboard/user (Limited class scheduling)',
+        employeeDashboard: 'GET /api/dashboard/employee (Limited class scheduling)',
+        adminDashboard: 'GET /api/dashboard/admin',
+        systemOverview: 'GET /api/dashboard/admin/overview',
+        revenueStats: 'GET /api/dashboard/admin/revenue',
+        userEngagement: 'GET /api/dashboard/employee/engagement',
+        quickActions: 'GET /api/dashboard/user/quick-actions'
+      },
+      userFlow: {
+        profile: 'GET /api/user-flow/profile',
+        updateProfile: 'PUT /api/user-flow/profile',
+        changePassword: 'POST /api/user-flow/change-password',
+        preferences: 'GET /api/user-flow/preferences (Limited - requires schema changes)',
+        updatePreferences: 'PUT /api/user-flow/preferences (Limited - requires schema changes)',
+        activity: 'GET /api/user-flow/activity',
+        stats: 'GET /api/user-flow/stats',
+        subscriptionHistory: 'GET /api/user-flow/subscription-history',
+        notifications: 'GET /api/user-flow/notifications',
+        classes: 'GET /api/user-flow/classes (Limited - no date-based filtering)',
+        deleteAccount: 'DELETE /api/user-flow/account'
+      },
+      admin: {
+        settings: 'GET /api/admin/settings (Not implemented - requires Settings model)',
+        updateSettings: 'PUT /api/admin/settings (Not implemented - requires Settings model)',
+        userManagement: 'GET /api/admin/user-management',
+        bulkActions: 'POST /api/admin/users/bulk-action',
+        staff: 'GET /api/admin/staff',
+        reports: 'GET /api/admin/reports',
+        analytics: 'GET /api/admin/analytics',
+        export: 'GET /api/admin/export',
+        auditLogs: 'GET /api/admin/audit-logs',
+        systemHealth: 'GET /api/admin/health',
+        backup: 'POST /api/admin/backup'
       }
     }
   });
