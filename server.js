@@ -77,7 +77,7 @@ app.use(cookieParser());
 // SESSION CONFIGURATION
 // ============================================================================
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'gym-session-secret',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
