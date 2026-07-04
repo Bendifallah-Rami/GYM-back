@@ -2,7 +2,8 @@ require('dotenv').config();
 
 module.exports = {
   // Use DATABASE_URL in production (Render provides this)
-  use_env_variable: process.env.NODE_ENV === 'production' ? 'DATABASE_URL' : false,
+  use_env_variable: process.env.NODE_ENV === 'production' && process.env.DATABASE_URL ? 'DATABASE_URL' : false,
+  url: process.env.DATABASE_URL,
   username: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'Rami.2006',
   database: process.env.DB_NAME || 'gym_db',

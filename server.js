@@ -9,6 +9,7 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const session = require('express-session');
+const SequelizeStore = require('connect-session-sequelize')(session.Store);
 const passport = require('passport');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
@@ -23,6 +24,7 @@ dotenv.config();
 // Import configuration files
 require('./config/passport');
 const { generalLimiter } = require('./middleware/rateLimiter');
+const sequelize = require('./models').sequelize;
 
 // ============================================================================
 // ROUTE IMPORTS
@@ -76,10 +78,22 @@ app.use(cookieParser());
 // ============================================================================
 // SESSION CONFIGURATION
 // ============================================================================
+const sessionStore = new SequelizeStore({
+  db: sequelize,
+  tableName: 'sessions',
+  extendDefaultFields: (defaults, session) => ({
+    data: defaults.data,
+    expires: defaults.expires,
+    sid: defaults.sid,
+    userId: session.userId || null
+  })
+});
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'gym-session-secret',
   resave: false,
   saveUninitialized: false,
+  store: sessionStore,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,

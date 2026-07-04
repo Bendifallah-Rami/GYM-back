@@ -4,220 +4,366 @@ const bcrypt = require('bcryptjs');
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up (queryInterface, Sequelize) {
-    // Insert subscription plans
-    await queryInterface.bulkInsert('subscription_plans', [
+  async up(queryInterface, Sequelize) {
+    const now = new Date();
+    const baseDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const plans = [
       {
         name: 'Basic Monthly',
-        description: 'Access to gym equipment and basic facilities',
+        description: 'Entry-level membership with standard gym access',
         duration_months: 1,
-        price: 29.99,
-        features: JSON.stringify(["Gym Access", "Locker Room", "Basic Equipment"]),
+        price: '29.99',
+        features: JSON.stringify(['Gym Access', 'Locker Room', 'Basic Equipment']),
         is_active: true,
-        created_at: new Date(),
-        updated_at: new Date()
+        created_at: baseDate,
+        updated_at: baseDate
       },
       {
         name: 'Premium Monthly',
-        description: 'Full access with additional perks',
+        description: 'Full access plus classes and recovery amenities',
         duration_months: 1,
-        price: 59.99,
-        features: JSON.stringify(["Gym Access", "Locker Room", "All Equipment", "Group Classes", "Sauna"]),
+        price: '59.99',
+        features: JSON.stringify(['Gym Access', 'Locker Room', 'All Equipment', 'Group Classes', 'Sauna']),
         is_active: true,
-        created_at: new Date(),
-        updated_at: new Date()
+        created_at: baseDate,
+        updated_at: baseDate
       },
       {
         name: 'Annual Basic',
-        description: 'Basic plan with annual discount',
+        description: 'Year-long access with a lower monthly equivalent',
         duration_months: 12,
-        price: 299.99,
-        features: JSON.stringify(["Gym Access", "Locker Room", "Basic Equipment", "Annual Discount"]),
+        price: '299.99',
+        features: JSON.stringify(['Gym Access', 'Locker Room', 'Basic Equipment', 'Annual Discount']),
         is_active: true,
-        created_at: new Date(),
-        updated_at: new Date()
+        created_at: baseDate,
+        updated_at: baseDate
       },
       {
         name: 'Annual Premium',
-        description: 'Premium plan with annual discount',
+        description: 'Premium annual membership with coaching perks',
         duration_months: 12,
-        price: 599.99,
-        features: JSON.stringify(["Gym Access", "Locker Room", "All Equipment", "Group Classes", "Sauna", "Personal Training Session", "Annual Discount"]),
+        price: '599.99',
+        features: JSON.stringify(['Gym Access', 'Locker Room', 'All Equipment', 'Group Classes', 'Sauna', 'Personal Training Session', 'Annual Discount']),
         is_active: true,
-        created_at: new Date(),
-        updated_at: new Date()
+        created_at: baseDate,
+        updated_at: baseDate
       }
-    ]);
+    ];
 
-    // Insert default admin user
-    const hashedPassword = await bcrypt.hash('admin123', 10);
-    await queryInterface.bulkInsert('users', [
+    const insertedPlans = await queryInterface.bulkInsert('subscription_plans', plans, { returning: true });
+
+    const users = [
       {
         name: 'System Admin',
         email: 'admin@gym.com',
-        phone: '+1234567890',
-        password_hash: hashedPassword,
+        phone: '+213555100001',
+        password_hash: await bcrypt.hash('admin123', 10),
         role: 'admin',
         status: 'active',
         email_verified: true,
-        created_at: new Date(),
-        updated_at: new Date()
+        created_at: baseDate,
+        updated_at: baseDate
       },
       {
-        name: 'John Employee',
+        name: 'Sarah Employee',
         email: 'employee@gym.com',
-        phone: '+1234567891',
+        phone: '+213555100002',
         password_hash: await bcrypt.hash('employee123', 10),
         role: 'employee',
         status: 'active',
         email_verified: true,
-        created_at: new Date(),
-        updated_at: new Date()
+        created_at: baseDate,
+        updated_at: baseDate
       },
       {
         name: 'Mike Coach',
         email: 'coach@gym.com',
-        phone: '+1234567892',
+        phone: '+213555100003',
         password_hash: await bcrypt.hash('coach123', 10),
         role: 'coach',
         status: 'active',
         email_verified: true,
-        created_at: new Date(),
-        updated_at: new Date()
+        created_at: baseDate,
+        updated_at: baseDate
       },
       {
-        name: 'Test User',
-        email: 'user@gym.com',
-        phone: '+1234567893',
+        name: 'Amina Benali',
+        email: 'amina@example.com',
+        phone: '+213555100004',
+        password_hash: await bcrypt.hash('user123', 10),
+        role: 'user',
+        status: 'active',
+        email_verified: true,
+        created_at: baseDate,
+        updated_at: baseDate
+      },
+      {
+        name: 'Karim Haddad',
+        email: 'karim@example.com',
+        phone: '+213555100005',
+        password_hash: await bcrypt.hash('user123', 10),
+        role: 'user',
+        status: 'active',
+        email_verified: true,
+        created_at: baseDate,
+        updated_at: baseDate
+      },
+      {
+        name: 'Leila Zeroual',
+        email: 'leila@example.com',
+        phone: '+213555100006',
         password_hash: await bcrypt.hash('user123', 10),
         role: 'user',
         status: 'pending_subscription',
+        email_verified: false,
+        created_at: baseDate,
+        updated_at: baseDate
+      },
+      {
+        name: 'Omar Saidi',
+        email: 'omar@example.com',
+        phone: '+213555100007',
+        password_hash: await bcrypt.hash('user123', 10),
+        role: 'user',
+        status: 'expired',
         email_verified: true,
-        created_at: new Date(),
-        updated_at: new Date()
+        created_at: baseDate,
+        updated_at: baseDate
       }
-    ]);
+    ];
 
-    // Insert sample classes
-    await queryInterface.bulkInsert('classes', [
+    const insertedUsers = await queryInterface.bulkInsert('users', users, { returning: true });
+    const userMap = Object.fromEntries(insertedUsers.map((user, index) => [index + 1, user]));
+
+    const classes = [
       {
         name: 'Morning Yoga',
-        description: 'Relaxing yoga session to start your day',
-        coach_id: 3, // Mike Coach
+        description: 'Gentle flow and mobility session to start the day',
+        coach_id: insertedUsers[2].id,
         capacity: 15,
         duration_minutes: 60,
         schedule_time: '08:00:00',
         schedule_days: JSON.stringify(['monday', 'wednesday', 'friday']),
+        price: '15.00',
+        registered_users: JSON.stringify([insertedUsers[3].id, insertedUsers[4].id]),
+        status: 'available',
         is_active: true,
-        created_at: new Date()
+        created_at: baseDate
       },
       {
         name: 'HIIT Training',
-        description: 'High-intensity interval training for maximum results',
-        coach_id: 3, // Mike Coach
+        description: 'Fast-paced interval session for strength and cardio',
+        coach_id: insertedUsers[2].id,
         capacity: 20,
         duration_minutes: 45,
-        schedule_time: '18:00:00',
+        schedule_time: '18:30:00',
         schedule_days: JSON.stringify(['tuesday', 'thursday']),
+        price: '20.00',
+        registered_users: JSON.stringify([insertedUsers[4].id, insertedUsers[5].id]),
+        status: 'available',
         is_active: true,
-        created_at: new Date()
+        created_at: baseDate
       },
       {
         name: 'Weight Training 101',
-        description: 'Introduction to weight training for beginners',
-        coach_id: 3, // Mike Coach
+        description: 'Beginner-friendly introduction to lifting technique',
+        coach_id: insertedUsers[2].id,
         capacity: 12,
         duration_minutes: 90,
         schedule_time: '10:00:00',
         schedule_days: JSON.stringify(['saturday']),
+        price: '25.00',
+        registered_users: JSON.stringify([insertedUsers[3].id]),
+        status: 'available',
         is_active: true,
-        created_at: new Date()
+        created_at: baseDate
       },
       {
         name: 'Cardio Blast',
-        description: 'High-energy cardio workout',
-        coach_id: null, // No specific coach assigned
+        description: 'High-energy circuit for endurance and stamina',
+        coach_id: null,
         capacity: 25,
         duration_minutes: 30,
         schedule_time: '07:00:00',
         schedule_days: JSON.stringify(['monday', 'tuesday', 'wednesday', 'thursday', 'friday']),
+        price: '12.00',
+        registered_users: JSON.stringify([insertedUsers[6].id]),
+        status: 'available',
         is_active: true,
-        created_at: new Date()
+        created_at: baseDate
       }
-    ]);
+    ];
 
-    // Insert sample coach assignment
-    await queryInterface.bulkInsert('coach_assignments', [
+    await queryInterface.bulkInsert('classes', classes);
+
+    const coachAssignments = [
       {
-        coach_id: 3, // Mike Coach
-        user_id: 4,  // Test User
-        assigned_date: new Date(),
+        coach_id: insertedUsers[2].id,
+        user_id: insertedUsers[3].id,
+        assigned_date: baseDate,
         is_active: true,
-        notes: 'Personal training focus on strength building'
-      }
-    ]);
-
-    // Insert sample notifications
-    await queryInterface.bulkInsert('notifications', [
-      {
-        user_id: 1, // System Admin
-        title: 'Welcome to Gym Management System',
-        message: 'System has been successfully initialized with sample data',
-        type: 'general',
-        is_read: false,
-        created_at: new Date()
+        notes: 'Strength and conditioning plan for improved posture'
       },
       {
-        user_id: 4, // Test User
-        title: 'Welcome to Our Gym!',
-        message: 'Please choose a subscription plan to get started',
+        coach_id: insertedUsers[2].id,
+        user_id: insertedUsers[4].id,
+        assigned_date: baseDate,
+        is_active: true,
+        notes: 'Fat-loss program with guided nutrition reminders'
+      }
+    ];
+
+    await queryInterface.bulkInsert('coach_assignments', coachAssignments);
+
+    const notifications = [
+      {
+        user_id: insertedUsers[0].id,
+        title: 'Welcome to the gym dashboard',
+        message: 'The system has been initialized with a realistic sample dataset.',
+        type: 'general',
+        is_read: false,
+        created_at: baseDate
+      },
+      {
+        user_id: insertedUsers[3].id,
+        title: 'Subscription renewed',
+        message: 'Your premium monthly plan is active and ready for use.',
         type: 'subscription',
-        is_read: false,
-        created_at: new Date()
+        is_read: true,
+        created_at: baseDate
       },
       {
-        user_id: 4, // Test User
-        title: 'Coach Assigned',
-        message: 'Mike Coach has been assigned as your personal trainer',
-        type: 'general',
+        user_id: insertedUsers[4].id,
+        title: 'New class reminder',
+        message: 'HIIT Training is scheduled for tonight at 18:30.',
+        type: 'class',
         is_read: false,
-        created_at: new Date()
-      }
-    ]);
-
-    // Insert sample subscription for test user
-    await queryInterface.bulkInsert('subscriptions', [
+        created_at: baseDate
+      },
       {
-        user_id: 4, // Test User
-        plan_id: 1, // Basic Monthly
+        user_id: insertedUsers[6].id,
+        title: 'Membership expired',
+        message: 'Please renew your membership to continue attending classes.',
+        type: 'payment',
+        is_read: false,
+        created_at: baseDate
+      }
+    ];
+
+    await queryInterface.bulkInsert('notifications', notifications);
+
+    const subscriptions = [
+      {
+        user_id: insertedUsers[3].id,
+        plan_id: insertedPlans[1].id,
+        payment_method: 'card',
+        payment_status: 'paid',
+        confirmation_status: 'confirmed',
+        confirmed_by: insertedUsers[0].id,
+        start_date: new Date(baseDate.getFullYear(), baseDate.getMonth(), 1),
+        end_date: new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 1),
+        amount: '59.99',
+        notes: 'Member upgraded to premium monthly plan',
+        created_at: baseDate,
+        updated_at: baseDate
+      },
+      {
+        user_id: insertedUsers[4].id,
+        plan_id: insertedPlans[0].id,
         payment_method: 'cash',
         payment_status: 'pending',
         confirmation_status: 'pending',
         confirmed_by: null,
         start_date: null,
         end_date: null,
-        amount: 29.99,
-        notes: 'Sample pending subscription',
-        created_at: new Date(),
-        updated_at: new Date()
-      }
-    ]);
-
-    // Insert sample subscription audit
-    await queryInterface.bulkInsert('subscription_audit', [
+        amount: '29.99',
+        notes: 'New member waiting for plan confirmation',
+        created_at: baseDate,
+        updated_at: baseDate
+      },
       {
-        subscription_id: 1,
+        user_id: insertedUsers[6].id,
+        plan_id: insertedPlans[2].id,
+        payment_method: 'card',
+        payment_status: 'failed',
+        confirmation_status: 'rejected',
+        confirmed_by: insertedUsers[0].id,
+        start_date: null,
+        end_date: null,
+        amount: '299.99',
+        notes: 'Previous annual plan payment failed and was rejected',
+        created_at: baseDate,
+        updated_at: baseDate
+      }
+    ];
+
+    const insertedSubscriptions = await queryInterface.bulkInsert('subscriptions', subscriptions, { returning: true });
+
+    const subscriptionAudit = [
+      {
+        subscription_id: insertedSubscriptions[0].id,
+        action: 'confirmed',
+        performed_by: insertedUsers[0].id,
+        old_status: 'pending',
+        new_status: 'confirmed',
+        notes: 'Admin confirmed premium monthly subscription',
+        created_at: baseDate
+      },
+      {
+        subscription_id: insertedSubscriptions[1].id,
         action: 'created',
-        performed_by: 4, // Test User created it
+        performed_by: insertedUsers[4].id,
         old_status: null,
         new_status: 'pending',
-        notes: 'User submitted subscription request',
-        created_at: new Date()
+        notes: 'Member requested the basic monthly plan',
+        created_at: baseDate
+      },
+      {
+        subscription_id: insertedSubscriptions[2].id,
+        action: 'rejected',
+        performed_by: insertedUsers[0].id,
+        old_status: 'pending',
+        new_status: 'rejected',
+        notes: 'Payment was declined and the request was rejected',
+        created_at: baseDate
       }
-    ]);
+    ];
+
+    await queryInterface.bulkInsert('subscription_audit', subscriptionAudit);
+
+    const attendance = [
+      {
+        user_id: insertedUsers[3].id,
+        check_in_time: new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 7, 30),
+        check_out_time: new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 9, 0),
+        recorded_by: insertedUsers[1].id,
+        notes: 'Morning cardio session',
+        created_at: baseDate
+      },
+      {
+        user_id: insertedUsers[4].id,
+        check_in_time: new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 18, 15),
+        check_out_time: new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 19, 0),
+        recorded_by: insertedUsers[2].id,
+        notes: 'HIIT class attendance',
+        created_at: baseDate
+      },
+      {
+        user_id: insertedUsers[6].id,
+        check_in_time: new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 8, 0),
+        check_out_time: null,
+        recorded_by: insertedUsers[1].id,
+        notes: 'Signed in but did not checkout',
+        created_at: baseDate
+      }
+    ];
+
+    await queryInterface.bulkInsert('attendance', attendance);
   },
 
-  async down (queryInterface, Sequelize) {
+  async down(queryInterface, Sequelize) {
+    await queryInterface.bulkDelete('attendance', null, {});
     await queryInterface.bulkDelete('subscription_audit', null, {});
     await queryInterface.bulkDelete('subscriptions', null, {});
     await queryInterface.bulkDelete('notifications', null, {});

@@ -1,5 +1,11 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
+    const usersTableExists = await queryInterface.tableExists('users');
+
+    if (!usersTableExists) {
+      return;
+    }
+
     // Add Google OAuth columns if they don't exist
     const tableInfo = await queryInterface.describeTable('users');
     
