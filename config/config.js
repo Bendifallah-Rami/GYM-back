@@ -2,6 +2,8 @@ require('dotenv').config();
 
 module.exports = {
   development: {
+    use_env_variable: process.env.DATABASE_URL ? 'DATABASE_URL' : false,
+    url: process.env.DATABASE_URL,
     username: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || 'password',
     database: process.env.DB_NAME || 'gym_db',
@@ -9,6 +11,12 @@ module.exports = {
     port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
     logging: false,
+    dialectOptions: process.env.DATABASE_URL ? {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      }
+    } : {},
     pool: {
       max: 5,
       min: 0,
@@ -26,7 +34,7 @@ module.exports = {
     logging: false
   },
   production: {
-    use_env_variable: 'DATABASE_URL',
+    use_env_variable: process.env.DATABASE_URL ? 'DATABASE_URL' : false,
     url: process.env.DATABASE_URL,
     dialect: 'postgres',
     logging: false,
